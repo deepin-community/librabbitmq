@@ -1,34 +1,13 @@
+// Copyright 2007 - 2021, Alan Antonuk and the rabbitmq-c contributors.
+// SPDX-License-Identifier: mit
+
 /** \file */
-/*
- * Portions created by Alan Antonuk are Copyright (c) 2013-2014 Alan Antonuk.
- * All Rights Reserved.
- *
- * Portions created by Michael Steinert are Copyright (c) 2012-2013 Michael
- * Steinert. All Rights Reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
- * DEALINGS IN THE SOFTWARE.
- */
 
-#ifndef AMQP_SSL_H
-#define AMQP_SSL_H
+#ifndef RABBITMQ_C_SSL_SOCKET_H
+#define RABBITMQ_C_SSL_SOCKET_H
 
-#include <amqp.h>
+#include <rabbitmq-c/amqp.h>
+#include <rabbitmq-c/export.h>
 
 AMQP_BEGIN_DECLS
 
@@ -54,7 +33,7 @@ AMQP_BEGIN_DECLS
  *
  * \since v0.4.0
  */
-AMQP_PUBLIC_FUNCTION
+AMQP_EXPORT
 amqp_socket_t *AMQP_CALL amqp_ssl_socket_new(amqp_connection_state_t state);
 
 /**
@@ -67,8 +46,21 @@ amqp_socket_t *AMQP_CALL amqp_ssl_socket_new(amqp_connection_state_t state);
  *
  * \since v0.9.0
  */
-AMQP_PUBLIC_FUNCTION
+AMQP_EXPORT
 void *AMQP_CALL amqp_ssl_socket_get_context(amqp_socket_t *self);
+
+/**
+ * Enable loading of the CA certificates from the default location.
+ *
+ * \param [in,out] self An SSL/TLS socket object.
+ *
+ * \return \ref AMQP_STATUS_OK on success an \ref amqp_status_enum value on
+ *  failure.
+ *
+ * \since v0.14.0
+ */
+AMQP_EXPORT
+int AMQP_CALL amqp_ssl_socket_enable_default_verify_paths(amqp_socket_t *self);
 
 /**
  * Set the CA certificate.
@@ -81,7 +73,7 @@ void *AMQP_CALL amqp_ssl_socket_get_context(amqp_socket_t *self);
  *
  * \since v0.4.0
  */
-AMQP_PUBLIC_FUNCTION
+AMQP_EXPORT
 int AMQP_CALL amqp_ssl_socket_set_cacert(amqp_socket_t *self,
                                          const char *cacert);
 
@@ -93,7 +85,7 @@ int AMQP_CALL amqp_ssl_socket_set_cacert(amqp_socket_t *self,
  *
  * \since v0.11.0
  */
-AMQP_PUBLIC_FUNCTION
+AMQP_EXPORT
 void AMQP_CALL amqp_ssl_socket_set_key_passwd(amqp_socket_t *self,
                                               const char *passwd);
 
@@ -109,7 +101,7 @@ void AMQP_CALL amqp_ssl_socket_set_key_passwd(amqp_socket_t *self,
  *
  * \since v0.4.0
  */
-AMQP_PUBLIC_FUNCTION
+AMQP_EXPORT
 int AMQP_CALL amqp_ssl_socket_set_key(amqp_socket_t *self, const char *cert,
                                       const char *key);
 
@@ -123,11 +115,12 @@ int AMQP_CALL amqp_ssl_socket_set_key(amqp_socket_t *self, const char *cert,
  * \param [in] the key ID.
  *
  * \return \ref AMQP_STATUS_OK on success an \ref amqp_status_enum value on
- *  failure.
+ *  failure. May return \ref AMQP_STATUS_SSL_UNIMPLEMENTED if OpenSSL does 
+ *  not support the ENGINE API.
  *
  * \since v0.11.0
  */
-AMQP_PUBLIC_FUNCTION
+AMQP_EXPORT
 int AMQP_CALL amqp_ssl_socket_set_key_engine(amqp_socket_t *self,
                                              const char *cert, const char *key);
 
@@ -144,7 +137,7 @@ int AMQP_CALL amqp_ssl_socket_set_key_engine(amqp_socket_t *self,
  *
  * \since v0.4.0
  */
-AMQP_PUBLIC_FUNCTION
+AMQP_EXPORT
 int AMQP_CALL amqp_ssl_socket_set_key_buffer(amqp_socket_t *self,
                                              const char *cert, const void *key,
                                              size_t n);
@@ -164,8 +157,8 @@ int AMQP_CALL amqp_ssl_socket_set_key_buffer(amqp_socket_t *self,
  *
  * \since v0.4.0
  */
-AMQP_DEPRECATED(AMQP_PUBLIC_FUNCTION void AMQP_CALL amqp_ssl_socket_set_verify(
-    amqp_socket_t *self, amqp_boolean_t verify));
+AMQP_DEPRECATED_EXPORT void AMQP_CALL
+    amqp_ssl_socket_set_verify(amqp_socket_t *self, amqp_boolean_t verify);
 
 /**
  * Enable or disable peer verification.
@@ -178,7 +171,7 @@ AMQP_DEPRECATED(AMQP_PUBLIC_FUNCTION void AMQP_CALL amqp_ssl_socket_set_verify(
  *
  * \since v0.8.0
  */
-AMQP_PUBLIC_FUNCTION
+AMQP_EXPORT
 void AMQP_CALL amqp_ssl_socket_set_verify_peer(amqp_socket_t *self,
                                                amqp_boolean_t verify);
 
@@ -191,7 +184,7 @@ void AMQP_CALL amqp_ssl_socket_set_verify_peer(amqp_socket_t *self,
  *
  * \since v0.8.0
  */
-AMQP_PUBLIC_FUNCTION
+AMQP_EXPORT
 void AMQP_CALL amqp_ssl_socket_set_verify_hostname(amqp_socket_t *self,
                                                    amqp_boolean_t verify);
 
@@ -199,6 +192,7 @@ typedef enum {
   AMQP_TLSv1 = 1,
   AMQP_TLSv1_1 = 2,
   AMQP_TLSv1_2 = 3,
+  AMQP_TLSv1_3 = 4,
   AMQP_TLSvLATEST = 0xFFFF
 } amqp_tls_version_t;
 
@@ -209,6 +203,9 @@ typedef enum {
  * connecting to the broker. Set min == max to restrict to just that
  * version.
  *
+ * As of v0.14.0 the defaults are TLS v1.2 and TLS v1.3. TLS v1.1 and lower are
+ * no longer supported.
+ *
  * \param [in,out] self An SSL/TLS socket object.
  * \param [in] min the minimum acceptable TLS version
  * \param [in] max the maxmium acceptable TLS version
@@ -218,13 +215,16 @@ typedef enum {
  *
  * \since v0.8.0
  */
-AMQP_PUBLIC_FUNCTION
+AMQP_EXPORT
 int AMQP_CALL amqp_ssl_socket_set_ssl_versions(amqp_socket_t *self,
                                                amqp_tls_version_t min,
                                                amqp_tls_version_t max);
 
 /**
  * Sets whether rabbitmq-c will initialize OpenSSL.
+ *
+ * \deprecated Since v0.13.0 this is a no-op. OpenSSL automatically manages
+ *    library initialization and uninitialization.
  *
  * OpenSSL requires a one-time initialization across a whole program, this sets
  * whether or not rabbitmq-c will initialize the SSL library when the first call
@@ -246,11 +246,14 @@ int AMQP_CALL amqp_ssl_socket_set_ssl_versions(amqp_socket_t *self,
  *
  * \since v0.4.0
  */
-AMQP_PUBLIC_FUNCTION
+AMQP_DEPRECATED_EXPORT
 void AMQP_CALL amqp_set_initialize_ssl_library(amqp_boolean_t do_initialize);
 
 /**
  * Initialize the underlying SSL/TLS library.
+ *
+ * \deprecated Since v0.13.0 this is a no-op. OpenSSL automatically manages
+ *    library initialization and uninitialization.
  *
  * The OpenSSL library requires a one-time initialization across the whole
  * program.
@@ -264,7 +267,7 @@ void AMQP_CALL amqp_set_initialize_ssl_library(amqp_boolean_t do_initialize);
  *
  * \since v0.9.0
  */
-AMQP_PUBLIC_FUNCTION
+AMQP_DEPRECATED_EXPORT
 int AMQP_CALL amqp_initialize_ssl_library(void);
 
 /**
@@ -276,23 +279,27 @@ int AMQP_CALL amqp_initialize_ssl_library(void);
  * has been called.
  *
  * \param [in] engine the engine ID
- * \return AMQP_STATUS_OK on success.
+ * \return AMQP_STATUS_OK on success. May return \ref AMQP_STATUS_SSL_UNIMPLEMENTED
+ *   if OpenSSL does not support the ENGINE API.
  *
  * \since v0.11.0
  */
-AMQP_PUBLIC_FUNCTION
+AMQP_EXPORT
 int amqp_set_ssl_engine(const char *engine);
 
 /**
  * Uninitialize the underlying SSL/TLS library.
  *
+ * \deprecated Since v0.13.0 this is a no-op. OpenSSL automatically manages
+ *    library initialization and uninitialization.
+ *
  * \return AMQP_STATUS_OK on success.
  *
  * \since v0.9.0
  */
-AMQP_PUBLIC_FUNCTION
+AMQP_DEPRECATED_EXPORT
 int AMQP_CALL amqp_uninitialize_ssl_library(void);
 
 AMQP_END_DECLS
 
-#endif /* AMQP_SSL_H */
+#endif /* RABBITMQ_C_SSL_SOCKET_H */

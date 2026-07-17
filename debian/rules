@@ -5,10 +5,6 @@ export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 %:
 	dh $@ --buildsystem=cmake --dbgsym-migration='librabbitmq-dbg (<< 0.9.0-0.1~)'
 
-override_dh_installman:
-	set -e ; \
-	for doc in consume declare-queue delete-queue get publish; do \
-	  docbook-to-man tools/doc/amqp-$$doc.xml > amqp-$$doc.1; \
-	done
-	docbook-to-man tools/doc/librabbitmq-tools.xml > librabbitmq-tools.7
-	dh_installman
+override_dh_auto_configure:
+	# CMAKE_BUILD_RPATH_USE_ORIGIN as per https://tests.reproducible-builds.org/debian/issues/unstable/cmake_rpath_contains_build_path_issue.html
+	dh_auto_configure -- -DBUILD_TOOLS=ON -DBUILD_TOOLS_DOCS=ON -DCMAKE_BUILD_RPATH_USE_ORIGIN=ON

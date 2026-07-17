@@ -1,49 +1,13 @@
-/*
- * ***** BEGIN LICENSE BLOCK *****
- * Version: MIT
- *
- * Portions created by Alan Antonuk are Copyright (c) 2012-2013
- * Alan Antonuk. All Rights Reserved.
- *
- * Portions created by VMware are Copyright (c) 2007-2012 VMware, Inc.
- * All Rights Reserved.
- *
- * Portions created by Tony Garnock-Jones are Copyright (c) 2009-2010
- * VMware, Inc. and Tony Garnock-Jones. All Rights Reserved.
- *
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use, copy,
- * modify, merge, publish, distribute, sublicense, and/or sell copies
- * of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- * ***** END LICENSE BLOCK *****
- */
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+// Copyright 2007 - 2021, Alan Antonuk and the rabbitmq-c contributors.
+// SPDX-License-Identifier: mit
 
 #include "common.h"
 #ifdef WITH_SSL
-#include <amqp_ssl_socket.h>
+#include <rabbitmq-c/ssl_socket.h>
 #endif
-#include <amqp_tcp_socket.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <rabbitmq-c/tcp_socket.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -53,6 +17,11 @@
 #ifdef WINDOWS
 #include "compat.h"
 #endif
+
+/* For when reading auth data from a file */
+#define MAXAUTHTOKENLEN 128
+#define USERNAMEPREFIX "username:"
+#define PASSWORDPREFIX "password:"
 
 void die(const char *fmt, ...) {
   va_list ap;
@@ -161,6 +130,7 @@ static char *amqp_vhost;
 static char *amqp_username;
 static char *amqp_password;
 static int amqp_heartbeat = 0;
+static char *amqp_authfile;
 #ifdef WITH_SSL
 static int amqp_ssl = 0;
 static char *amqp_cacert = "/etc/ssl/certs/cacert.pem";
@@ -183,6 +153,8 @@ struct poptOption connect_options[] = {
      "the password to login with", "password"},
     {"heartbeat", 0, POPT_ARG_INT, &amqp_heartbeat, 0,
      "heartbeat interval, set to 0 to disable", "heartbeat"},
+    {"authfile", 0, POPT_ARG_STRING, &amqp_authfile, 0,
+     "path to file containing username/password for authentication", "file"},
 #ifdef WITH_SSL
     {"ssl", 0, POPT_ARG_NONE, &amqp_ssl, 0, "connect over SSL/TLS", NULL},
     {"cacert", 0, POPT_ARG_STRING, &amqp_cacert, 0,
@@ -193,6 +165,50 @@ struct poptOption connect_options[] = {
      "path to the client certificate file", "cert.pem"},
 #endif /* WITH_SSL */
     {NULL, '\0', 0, NULL, 0, NULL, NULL}};
+
+void read_authfile(const char *path) {
+  size_t n;
+  FILE *fp = NULL;
+  char token[MAXAUTHTOKENLEN];
+
+  if ((amqp_username = malloc(MAXAUTHTOKENLEN)) == NULL ||
+      (amqp_password = malloc(MAXAUTHTOKENLEN)) == NULL) {
+    die("Out of memory");
+  } else if ((fp = fopen(path, "r")) == NULL) {
+    die("Could not read auth data file %s", path);
+  }
+
+  if (fgets(token, MAXAUTHTOKENLEN, fp) == NULL ||
+      strncmp(token, USERNAMEPREFIX, strlen(USERNAMEPREFIX))) {
+    die("Malformed auth file (missing username)");
+  }
+  strncpy(amqp_username, &token[strlen(USERNAMEPREFIX)], MAXAUTHTOKENLEN);
+  /* Missing newline means token was cut off */
+  n = strlen(amqp_username);
+  if (amqp_username[n - 1] != '\n') {
+    die("Username too long");
+  } else {
+    amqp_username[n - 1] = '\0';
+  }
+
+  if (fgets(token, MAXAUTHTOKENLEN, fp) == NULL ||
+      strncmp(token, PASSWORDPREFIX, strlen(PASSWORDPREFIX))) {
+    die("Malformed auth file (missing password)");
+  }
+  strncpy(amqp_password, &token[strlen(PASSWORDPREFIX)], MAXAUTHTOKENLEN);
+  /* Missing newline means token was cut off */
+  n = strlen(amqp_password);
+  if (amqp_password[n - 1] != '\n') {
+    die("Password too long");
+  } else {
+    amqp_password[n - 1] = '\0';
+  }
+
+  (void)fgetc(fp);
+  if (!feof(fp)) {
+    die("Malformed auth file (trailing data)");
+  }
+}
 
 static void init_connection_info(struct amqp_connection_info *ci) {
   ci->user = NULL;
@@ -249,14 +265,18 @@ static void init_connection_info(struct amqp_connection_info *ci) {
       }
 #endif
     }
+  }
 
 #if WITH_SSL
-    if (amqp_ssl && !ci->ssl) {
+  if (amqp_ssl && !ci->ssl) {
+    if (amqp_url) {
       die("the --ssl option specifies an SSL connection"
           " but the --url option does not");
+    } else {
+      ci->ssl = 1;
     }
-#endif
   }
+#endif
 
   if (amqp_port >= 0) {
     if (amqp_url) {
@@ -269,6 +289,8 @@ static void init_connection_info(struct amqp_connection_info *ci) {
   if (amqp_username) {
     if (amqp_url) {
       die("--username and --url options cannot be used at the same time");
+    } else if (amqp_authfile) {
+      die("--username and --authfile options cannot be used at the same time");
     }
 
     ci->user = amqp_username;
@@ -277,8 +299,20 @@ static void init_connection_info(struct amqp_connection_info *ci) {
   if (amqp_password) {
     if (amqp_url) {
       die("--password and --url options cannot be used at the same time");
+    } else if (amqp_authfile) {
+      die("--password and --authfile options cannot be used at the same time");
     }
 
+    ci->password = amqp_password;
+  }
+
+  if (amqp_authfile) {
+    if (amqp_url) {
+      die("--authfile and --url options cannot be used at the same time");
+    }
+
+    read_authfile(amqp_authfile);
+    ci->user = amqp_username;
     ci->password = amqp_password;
   }
 
@@ -326,7 +360,7 @@ amqp_connection_state_t make_connection(void) {
   }
   status = amqp_socket_open(socket, ci.host, ci.port);
   if (status) {
-    die("opening socket to %s:%d", ci.host, ci.port);
+    die_amqp_error(status, "opening socket to %s:%d", ci.host, ci.port);
   }
   die_rpc(amqp_login(conn, ci.vhost, 0, 131072, amqp_heartbeat,
                      AMQP_SASL_METHOD_PLAIN, ci.user, ci.password),

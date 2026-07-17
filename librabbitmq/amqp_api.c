@@ -1,37 +1,5 @@
-/*
- * ***** BEGIN LICENSE BLOCK *****
- * Version: MIT
- *
- * Portions created by Alan Antonuk are Copyright (c) 2012-2013
- * Alan Antonuk. All Rights Reserved.
- *
- * Portions created by VMware are Copyright (c) 2007-2012 VMware, Inc.
- * All Rights Reserved.
- *
- * Portions created by Tony Garnock-Jones are Copyright (c) 2009-2010
- * VMware, Inc. and Tony Garnock-Jones. All Rights Reserved.
- *
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use, copy,
- * modify, merge, publish, distribute, sublicense, and/or sell copies
- * of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- * ***** END LICENSE BLOCK *****
- */
+// Copyright 2007 - 2021, Alan Antonuk and the rabbitmq-c contributors.
+// SPDX-License-Identifier: mit
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -117,7 +85,9 @@ static const char *ssl_error_strings[] = {
     /* AMQP_STATUS_SSL_CONNECTION_FAILED      -0x0203 */
     "SSL handshake failed",
     /* AMQP_STATUS_SSL_SET_ENGINE_FAILED      -0x0204 */
-    "SSL setting engine failed"};
+    "SSL setting engine failed",
+    /* AMQP_STATUS_SSL_UNIMPLEMENTED          -0x0204 */
+    "SSL API is not implemented"};
 
 static const char *unknown_error_string = "(unknown error)";
 
@@ -393,4 +363,59 @@ int amqp_set_rpc_timeout(amqp_connection_state_t state,
     state->rpc_timeout = NULL;
   }
   return AMQP_STATUS_OK;
+}
+
+amqp_rpc_reply_t amqp_publisher_confirm_wait(amqp_connection_state_t state,
+                                             const struct timeval *timeout,
+                                             amqp_publisher_confirm_t *result) {
+  int res;
+  amqp_frame_t frame;
+  amqp_rpc_reply_t ret;
+
+  memset(&ret, 0x0, sizeof(ret));
+  memset(result, 0x0, sizeof(amqp_publisher_confirm_t));
+
+  res = amqp_simple_wait_frame_noblock(state, &frame, timeout);
+
+  if (AMQP_STATUS_OK != res) {
+    ret.reply_type = AMQP_RESPONSE_LIBRARY_EXCEPTION;
+    ret.library_error = res;
+    return ret;
+  } else if (AMQP_FRAME_METHOD != frame.frame_type ||
+             (AMQP_BASIC_ACK_METHOD != frame.payload.method.id &&
+              AMQP_BASIC_NACK_METHOD != frame.payload.method.id &&
+              AMQP_BASIC_REJECT_METHOD != frame.payload.method.id)) {
+    amqp_put_back_frame(state, &frame);
+    ret.reply_type = AMQP_RESPONSE_LIBRARY_EXCEPTION;
+    ret.library_error = AMQP_STATUS_UNEXPECTED_STATE;
+    return ret;
+  }
+
+  switch (frame.payload.method.id) {
+    case AMQP_BASIC_ACK_METHOD:
+      memcpy(&(result->payload.ack), frame.payload.method.decoded,
+             sizeof(amqp_basic_ack_t));
+      break;
+
+    case AMQP_BASIC_NACK_METHOD:
+      memcpy(&(result->payload.nack), frame.payload.method.decoded,
+             sizeof(amqp_basic_nack_t));
+      break;
+
+    case AMQP_BASIC_REJECT_METHOD:
+      memcpy(&(result->payload.reject), frame.payload.method.decoded,
+             sizeof(amqp_basic_reject_t));
+      break;
+
+    default:
+      amqp_put_back_frame(state, &frame);
+      ret.reply_type = AMQP_RESPONSE_LIBRARY_EXCEPTION;
+      ret.library_error = AMQP_STATUS_UNSUPPORTED;
+      return ret;
+  }
+  result->method = frame.payload.method.id;
+  result->channel = frame.channel;
+  ret.reply_type = AMQP_RESPONSE_NORMAL;
+
+  return ret;
 }

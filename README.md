@@ -1,8 +1,12 @@
 # RabbitMQ C AMQP client library
 
-[![Build Status](https://secure.travis-ci.org/alanxz/rabbitmq-c.png?branch=master)](http://travis-ci.org/alanxz/rabbitmq-c)
+![Build Status](https://github.com/alanxz/rabbitmq-c/actions/workflows/ci.yml/badge.svg)
 
 [![Coverage Status](https://coveralls.io/repos/github/alanxz/rabbitmq-c/badge.svg?branch=master)](https://coveralls.io/github/alanxz/rabbitmq-c?branch=master)
+
+[![Fuzzing Status](https://oss-fuzz-build-logs.storage.googleapis.com/badges/rabbitmq-c.svg)](https://oss-fuzz-build-logs.storage.googleapis.com/index.html#rabbitmq-c)
+
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/7001/badge)](https://www.bestpractices.dev/projects/7001)
 
 ## Introduction
 
@@ -34,10 +38,10 @@ API documentation for v0.8.0+ can viewed from:
 ### Building and installing
 
 #### Prereqs:
-- [CMake v2.6 or better](http://www.cmake.org/)
+- [CMake v3.22 or better](http://www.cmake.org/)
 - A C compiler (GCC 4.4+, clang, and MSVC are test. Other compilers may also
   work)
-- *Optionally* [OpenSSL](http://www.openssl.org/) v0.9.8+ to enable support for
+- *Optionally* [OpenSSL](http://www.openssl.org/) v1.1.1+ to enable support for
   connecting to RabbitMQ over SSL/TLS
 - *Optionally* [POpt](http://freecode.com/projects/popt) to build some handy
   command-line tools.
@@ -69,12 +73,12 @@ More information on CMake can be found on its FAQ (http://www.cmake.org/Wiki/CMa
 
 Other interesting flags that can be passed to CMake:
 
-* `BUILD_EXAMPLES=ON/OFF` toggles building the examples. ON by default.
+* `BUILD_EXAMPLES=ON/OFF` toggles building the examples. OFF by default.
 * `BUILD_SHARED_LIBS=ON/OFF` toggles building rabbitmq-c as a shared library.
    ON by default.
 * `BUILD_STATIC_LIBS=ON/OFF` toggles building rabbitmq-c as a static library.
-   OFF by default.
-* `BUILD_TESTS=ON/OFF` toggles building test code. ON by default.
+   ON by default.
+* `BUILD_TESTING=ON/OFF` toggles building test code. ON by default.
 * `BUILD_TOOLS=ON/OFF` toggles building the command line tools. By default
    this is ON if the build system can find the POpt header and library.
 * `BUILD_TOOLS_DOCS=ON/OFF` toggles building the man pages for the command line
@@ -143,3 +147,34 @@ access an AMQP connection or any of its channels from more than one
 thread, it is entirely responsible for designing and implementing an
 appropriate locking scheme. It will generally be much simpler to have
 a connection exclusive to each thread that needs AMQP service.
+
+### License & Copyright
+
+Portions created by Alan Antonuk are Copyright (c) 2012-2021
+Alan Antonuk. All Rights Reserved.
+
+Portions created by VMware are Copyright (c) 2007-2012 VMware, Inc.
+All Rights Reserved.
+
+Portions created by Tony Garnock-Jones are Copyright (c) 2009-2010
+VMware, Inc. and Tony Garnock-Jones. All Rights Reserved.
+
+Permission is hereby granted, free of charge, to any person
+obtaining a copy of this software and associated documentation
+files (the "Software"), to deal in the Software without
+restriction, including without limitation the rights to use, copy,
+modify, merge, publish, distribute, sublicense, and/or sell copies
+of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

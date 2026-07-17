@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 librabbitmq (0.11.0-1deepin1) UNRELEASED; urgency=medium
 
   * Fix CVE-2026-44236: Clamp frame_max to AMQP_FRAME_MIN_SIZE to prevent
@@ -10,10 +11,45 @@ librabbitmq (0.11.0-1deepin1) UNRELEASED; urgency=medium
  -- deepin-ci-robot <packages@deepin.org>  Thu, 18 Jun 2026 03:05:00 +0800
 
 librabbitmq (0.11.0-1) UNRELEASED; urgency=medium
+=======
+librabbitmq (0.15.0-1) unstable; urgency=medium
+>>>>>>> a64e971 (feat: update librabbitmq to 0.15.0-1)
 
-  * update
+  * [0dd9015] New upstream version 0.15.0
+  * [b7ed3ad] d/patches/: remove as all are now applied upstream
+  * [76213b0] d/librabbitmq4.symbols: update for new upstream version
 
- -- Michael Fladischer <fladi@debian.org>  Thu, 16 Jun 2022 13:53:27 +0800
+ -- Florian Ernst <florian@debian.org>  Fri, 22 Nov 2024 14:21:29 +0100
+
+librabbitmq (0.14.0-1) unstable; urgency=medium
+
+  * [b9be669] New upstream version 0.12.0
+  * [28c033a] New upstream version 0.13.0
+  * [d1854f7] New upstream version 0.14.0 (Closes: #1031226)
+    - Add option to read username/password from file in tools addressing
+      CVE-2023-35789, thanks to Christian Kastner <ckk@debian.org> for
+      bugreport and patch pointer (Closes: #1037322)
+  * [b56b3ca] d/copyright: update for new upstream releases
+  * [5808cb4] d/patches/: drop patches integrated upstream and refresh
+    remaining
+  * [dd987f3] d/librabbitmq4.symbols: add new symbols introduced in 0.12.0 and
+    0.14.0
+  * [9d71db8] d/librabbitmq-dev.install: also install new upstream headers
+    location
+  * [a5d9cf3] use upstream's build system to build the tools manpages.
+    Among other things this also provides librabbitmq-tools(7).
+    (Closes: #855880)
+  * [d0a18fe] d/control: Standards-Version: 4.7.0 (no changes required)
+  * [2511702] new maintainer, cf. #1031226 for the previous maintainers'
+    approval.
+    Thanks to Michael Fladischer <michael@fladi.at>, Brian May
+    <bam@debian.org> for all their work
+  * [648c907] d/salsa-ci.yml: added
+  * [778a872] d/watch: make it work with current GitHub
+  * [83cf14d] d/rules: configure with CMAKE_BUILD_RPATH_USE_ORIGIN for
+    reproducibility
+
+ -- Florian Ernst <florian@debian.org>  Mon, 29 Jul 2024 15:50:43 +0200
 
 librabbitmq (0.11.0-1) unstable; urgency=low
 

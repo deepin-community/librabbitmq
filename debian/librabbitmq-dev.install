@@ -1,4 +1,5 @@
 usr/include/*.h
+usr/include/rabbitmq-c/*.h
 usr/lib/*/lib*.a
 usr/lib/*/lib*.so
 usr/lib/*/pkgconfig/librabbitmq.pc

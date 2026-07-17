@@ -1,17 +1,15 @@
 Source: librabbitmq
 Priority: optional
 Section: libs
-Maintainer: Michael Fladischer <fladi@debian.org>
-Uploaders:
- Brian May <bam@debian.org>,
+Maintainer: Florian Ernst <florian@debian.org>
 Build-Depends:
  cmake,
  debhelper-compat (= 13),
- docbook-to-man,
+ xmlto,
  libpopt-dev,
  libssl-dev,
  libtool,
-Standards-Version: 4.6.0.1
+Standards-Version: 4.7.0
 Homepage: https://github.com/alanxz/rabbitmq-c
 Vcs-Git: https://salsa.debian.org/debian/librabbitmq.git
 Vcs-Browser: https://salsa.debian.org/debian/librabbitmq

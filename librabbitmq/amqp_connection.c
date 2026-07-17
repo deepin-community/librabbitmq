@@ -1,37 +1,5 @@
-/*
- * ***** BEGIN LICENSE BLOCK *****
- * Version: MIT
- *
- * Portions created by Alan Antonuk are Copyright (c) 2012-2014
- * Alan Antonuk. All Rights Reserved.
- *
- * Portions created by VMware are Copyright (c) 2007-2012 VMware, Inc.
- * All Rights Reserved.
- *
- * Portions created by Tony Garnock-Jones are Copyright (c) 2009-2010
- * VMware, Inc. and Tony Garnock-Jones. All Rights Reserved.
- *
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use, copy,
- * modify, merge, publish, distribute, sublicense, and/or sell copies
- * of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- * ***** END LICENSE BLOCK *****
- */
+// Copyright 2007 - 2021, Alan Antonuk and the rabbitmq-c contributors.
+// SPDX-License-Identifier: mit
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -42,8 +10,8 @@
 #endif
 
 #include "amqp_private.h"
-#include "amqp_tcp_socket.h"
 #include "amqp_time.h"
+#include "rabbitmq-c/tcp_socket.h"
 #include <errno.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -301,8 +269,8 @@ int amqp_handle_input(amqp_connection_state_t state, amqp_bytes_t received_data,
         return AMQP_STATUS_BAD_AMQP_DATA;
       }
 
-      state->target_size = frame_size + HEADER_SIZE + FOOTER_SIZE;
-      if ((size_t)state->frame_max < state->target_size) {
+      frame_size = frame_size + HEADER_SIZE + FOOTER_SIZE;
+      if ((size_t)state->frame_max < frame_size) {
         return AMQP_STATUS_BAD_AMQP_DATA;
       }
 
@@ -311,8 +279,7 @@ int amqp_handle_input(amqp_connection_state_t state, amqp_bytes_t received_data,
         return AMQP_STATUS_NO_MEMORY;
       }
 
-      amqp_pool_alloc_bytes(channel_pool, state->target_size,
-                            &state->inbound_buffer);
+      amqp_pool_alloc_bytes(channel_pool, frame_size, &state->inbound_buffer);
       if (NULL == state->inbound_buffer.bytes) {
         return AMQP_STATUS_NO_MEMORY;
       }
@@ -320,7 +287,7 @@ int amqp_handle_input(amqp_connection_state_t state, amqp_bytes_t received_data,
       raw_frame = state->inbound_buffer.bytes;
 
       state->state = CONNECTION_STATE_BODY;
-
+      state->target_size = frame_size;
       bytes_consumed += consume_data(state, &received_data);
 
       /* do we have target_size data yet? if not, return with the

@@ -5,3 +5,4 @@
 0005-fix-CVE-2026-44236-frame-max-clamp.patch
 0006-fix-CVE-2026-44235-undersized-frame-handling.patch
 CVE-2026-59986.patch
+CVE-2026-61547.patch

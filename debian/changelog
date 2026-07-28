@@ -1,3 +1,9 @@
+librabbitmq (0.11.0-1deepin3) unstable; urgency=medium
+
+  * fix(cve): CVE-2026-61547
+
+ -- deepin-ci-robot <packages@deepin.org>  Wed, 29 Jul 2026 06:14:12 +0800
+
 librabbitmq (0.11.0-1deepin2) unstable; urgency=medium
 
   * Fix CVE-2026-44236: Clamp frame_max to AMQP_FRAME_MIN_SIZE to prevent

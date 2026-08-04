@@ -1,19 +1,15 @@
-<<<<<<< HEAD
-librabbitmq (0.11.0-1deepin1) UNRELEASED; urgency=medium
+librabbitmq (0.15.0-1+deb13u1) trixie-security; urgency=medium
 
-  * Fix CVE-2026-44236: Clamp frame_max to AMQP_FRAME_MIN_SIZE to prevent
-    heap buffer overflow during AMQP login handshake when server negotiates
-    a frame_max below protocol minimum.
-  * Fix CVE-2026-44235: Add target_size validation in amqp_handle_input to
-    prevent size_t underflow in AMQP frame length computation that leads
-    to out-of-bounds read.
+  * [b57bf8d] d/patches/CVE-2026-44235.patch: added from upstream.
+    Fix out-of-bounds read via undersized frames in amqp_handle_input
+    (GHSA-9mmv-r8g3-qp46, CVE-2026-44235)
+  * [890d6c5] d/patches/CVE-2026-44236.patch: added from upstream.
+    Fix client crash when server negotiates frame_max below the AMQP
+    protocol minimum (GHSA-jh48-qjf5-fx5v, CVE-2026-44236)
 
- -- deepin-ci-robot <packages@deepin.org>  Thu, 18 Jun 2026 03:05:00 +0800
+ -- Florian Ernst <florian@debian.org>  Wed, 10 Jun 2026 16:29:23 +0200
 
-librabbitmq (0.11.0-1) UNRELEASED; urgency=medium
-=======
 librabbitmq (0.15.0-1) unstable; urgency=medium
->>>>>>> a64e971 (feat: update librabbitmq to 0.15.0-1)
 
   * [0dd9015] New upstream version 0.15.0
   * [b7ed3ad] d/patches/: remove as all are now applied upstream

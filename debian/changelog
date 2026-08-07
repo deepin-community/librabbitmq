@@ -1,3 +1,9 @@
+librabbitmq (0.15.0-1+deb13u1deepin1) unstable; urgency=medium
+
+  * fix(cve): CVE-2026-61547
+
+ -- deepin-ci-robot <packages@deepin.org>  Fri, 07 Aug 2026 14:16:57 +0800
+
 librabbitmq (0.15.0-1+deb13u1) trixie-security; urgency=medium
 
   * [b57bf8d] d/patches/CVE-2026-44235.patch: added from upstream.
